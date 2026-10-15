@@ -1,0 +1,6 @@
+Diagnóstico da latência percebida no front — 08/10/2026 15:36
+Mesma rota (GET /v1/sensores/MOT-001/leitura-atual), 3 chamadas por cenário
+
+localhost  conexão nova a cada chamada: cliente 2095, 2109, 2089 ms | servidor 29, 61, 46 ms
+127.0.0.1  conexão nova a cada chamada: cliente 74, 72, 64 ms | servidor 31, 31, 46 ms
+localhost  conexão reutilizada (Session): cliente 2110, 46, 86 ms

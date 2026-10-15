@@ -1,0 +1,13 @@
+# Back-end (API)
+fastapi>=0.110
+uvicorn>=0.29
+
+# Front-end (interface e consumo da API)
+streamlit>=1.50
+requests>=2.31
+pandas>=2.0
+plotly>=5.18
+
+# Testes
+pytest>=8.0
+httpx>=0.27

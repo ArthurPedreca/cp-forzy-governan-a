@@ -1,0 +1,26 @@
+API: http://localhost:8000
+X-Session-Id: 6a857155-dcb0-466e-9a57-7c48215df00e
+X-Feature: script-consumo
+
+[1/3] GET /v1/sensores/CMP-003/leitura-atual
+  -> 200 | X-Request-Id 65ddaad3-044b-4d32-ad34-a53c85c4e348 | latência no servidor 61.66 ms
+  Severidade: ATENCAO | leitura de 2026-10-08T18:35:20Z (idade 4.6 s)
+    Temperatura          78.82 °C    [atencao]
+    Vibração (RMS)        3.91 mm/s  [atencao]
+    Corrente             57.03 A     [normal]
+    Tensão               440.0 V     [normal]
+    Rotação               1716 RPM   [normal]
+
+[2/3] GET /v1/sensores/CMP-003/historico?horas=6&intervalo_min=10
+  -> 200 | X-Request-Id 688b4856-cf16-4bc7-8b97-b5ec1e77dcd0 | latência no servidor 90.03 ms
+  36/36 pontos (completude 100.0%) entre 2026-10-08T12:40:00Z e 2026-10-08T18:30:00Z
+    2026-10-08T18:10:00Z  temp 89.6 °C  vib 5.102 mm/s  [critico]
+    2026-10-08T18:20:00Z  temp 87.44 °C  vib 4.385 mm/s  [atencao]
+    2026-10-08T18:30:00Z  temp 84.38 °C  vib 4.048 mm/s  [atencao]
+
+[3/3] GET /v1/observabilidade?session_id=6a857155-dcb0-466e-9a57-7c48215df00e
+  -> 200 | X-Request-Id 8f76dfc3-e69e-4b7f-bdda-b0e751093313 | latência no servidor 7.09 ms
+  2 chamadas desta sessão registradas pelo back-end:
+    2026-10-08T18:35:24.493Z  /v1/sensores/{tag}/leitura-atual   200    61.66 ms  feature=script-consumo
+    2026-10-08T18:35:24.574Z  /v1/sensores/{tag}/historico       200    90.03 ms  feature=script-consumo
+  (a chamada [3/3] é registrada depois de responder, por isso ainda não aparece na lista)

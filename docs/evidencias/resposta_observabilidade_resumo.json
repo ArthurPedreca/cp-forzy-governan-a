@@ -1,0 +1,361 @@
+{
+  "contrato": {
+    "id": "FORZY-OBS-SENSORES",
+    "versao": "1.0.0",
+    "vigencia": "2026-10-08",
+    "headers_obrigatorios": [
+      "X-Session-Id",
+      "X-Feature"
+    ],
+    "features_catalogo": {
+      "catalogo-ativos": "Carga da lista de ativos no seletor do front",
+      "painel-leitura-atual": "Tela de leitura atual do sensor",
+      "painel-historico": "Tela de histórico do sensor",
+      "painel-observabilidade": "Relatório de observabilidade",
+      "script-consumo": "Script de consumo via requests (linha de comando)",
+      "relatorio-governanca": "Extração dos registros pela disciplina de Governança em IA"
+    },
+    "periodo_publicacao_s": 5,
+    "freshness_sla_s": 15,
+    "retencao_dias": 30,
+    "campos_registro": [
+      {
+        "campo": "request_id",
+        "origem": "back-end",
+        "descricao": "UUID único da chamada, devolvido no header X-Request-Id"
+      },
+      {
+        "campo": "timestamp_utc",
+        "origem": "back-end",
+        "descricao": "Instante de chegada da requisição (UTC, ISO 8601)"
+      },
+      {
+        "campo": "metodo",
+        "origem": "requisição",
+        "descricao": "Método HTTP"
+      },
+      {
+        "campo": "rota",
+        "origem": "back-end",
+        "descricao": "Rota no formato de template (ex.: /v1/sensores/{tag}/leitura-atual)"
+      },
+      {
+        "campo": "caminho",
+        "origem": "requisição",
+        "descricao": "Caminho efetivamente chamado"
+      },
+      {
+        "campo": "tag",
+        "origem": "requisição",
+        "descricao": "TAG do ativo consultado, quando houver"
+      },
+      {
+        "campo": "session_id",
+        "origem": "header X-Session-Id",
+        "descricao": "Sessão do front que originou a chamada"
+      },
+      {
+        "campo": "feature",
+        "origem": "header X-Feature",
+        "descricao": "Funcionalidade do front que originou a chamada"
+      },
+      {
+        "campo": "cliente",
+        "origem": "header User-Agent",
+        "descricao": "Aplicação cliente (front, script, gerador de carga)"
+      },
+      {
+        "campo": "contexto_completo",
+        "origem": "back-end",
+        "descricao": "1 se X-Session-Id e X-Feature vieram preenchidos"
+      },
+      {
+        "campo": "status_code",
+        "origem": "back-end",
+        "descricao": "Código HTTP devolvido"
+      },
+      {
+        "campo": "latencia_ms",
+        "origem": "back-end",
+        "descricao": "Tempo de processamento no servidor, em milissegundos"
+      },
+      {
+        "campo": "idade_dado_s",
+        "origem": "provider",
+        "descricao": "Idade da leitura devolvida (freshness), em segundos"
+      },
+      {
+        "campo": "severidade",
+        "origem": "provider",
+        "descricao": "Severidade devolvida na leitura atual"
+      },
+      {
+        "campo": "completude_historico",
+        "origem": "provider",
+        "descricao": "Pontos recebidos ÷ pontos esperados no histórico"
+      },
+      {
+        "campo": "erro",
+        "origem": "back-end",
+        "descricao": "Motivo do erro quando status ≥ 400"
+      }
+    ],
+    "indicadores": [
+      {
+        "codigo": "IND-01",
+        "chave": "latencia_p95_leitura_ms",
+        "nome": "Latência p95 — leitura atual",
+        "unidade": "ms",
+        "sentido": "menor_melhor",
+        "limiar_atencao": 250,
+        "limiar_critico": 800,
+        "escopo": "Chamadas a /v1/sensores/{tag}/leitura-atual com status < 500",
+        "acao_atencao": "Abrir chamado de desempenho e verificar a latência do gateway de borda.",
+        "acao_critico": "Acionar o plantão de TI; o painel passa a exibir aviso de lentidão ao operador.",
+        "grafico": "Linha temporal do p95 em janelas de 5 min, com linhas de limiar"
+      },
+      {
+        "codigo": "IND-02",
+        "chave": "latencia_p95_historico_ms",
+        "nome": "Latência p95 — histórico",
+        "unidade": "ms",
+        "sentido": "menor_melhor",
+        "limiar_atencao": 600,
+        "limiar_critico": 1500,
+        "escopo": "Chamadas a /v1/sensores/{tag}/historico com status < 500",
+        "acao_atencao": "Revisar o tamanho das janelas consultadas e o índice do historiador.",
+        "acao_critico": "Limitar a janela máxima do histórico até a causa ser corrigida.",
+        "grafico": "Linha temporal do p95 em janelas de 5 min + box plot da distribuição por rota"
+      },
+      {
+        "codigo": "IND-03",
+        "chave": "idade_dado_p95_s",
+        "nome": "Tempo de atualização (idade p95 do dado)",
+        "unidade": "s",
+        "sentido": "menor_melhor",
+        "limiar_atencao": 15,
+        "limiar_critico": 60,
+        "escopo": "Leituras atuais devolvidas com sucesso",
+        "acao_atencao": "Verificar a conectividade do gateway do ativo com maior idade.",
+        "acao_critico": "Marcar o ativo como “dado vencido” no painel e acionar a manutenção de campo.",
+        "grafico": "Pequenos múltiplos por ativo da idade p95 em janelas de 5 min, com linha do SLA de 15 s"
+      },
+      {
+        "codigo": "IND-04",
+        "chave": "taxa_freshness_pct",
+        "nome": "Taxa de completude de freshness",
+        "unidade": "%",
+        "sentido": "maior_melhor",
+        "limiar_atencao": 95,
+        "limiar_critico": 90,
+        "escopo": "Leituras atuais devolvidas com sucesso (idade ≤ 15 s conta como fresca)",
+        "acao_atencao": "Investigar quais ativos concentram leituras vencidas.",
+        "acao_critico": "Suspender decisões automáticas baseadas na leitura atual até a taxa voltar a 95%.",
+        "grafico": "Linha temporal da taxa em janelas de 5 min, com linhas de meta (95%) e crítico (90%)"
+      },
+      {
+        "codigo": "IND-05",
+        "chave": "taxa_contexto_pct",
+        "nome": "Completude dos metadados de contexto",
+        "unidade": "%",
+        "sentido": "maior_melhor",
+        "limiar_atencao": 99,
+        "limiar_critico": 95,
+        "escopo": "Todas as chamadas (X-Session-Id e X-Feature preenchidos)",
+        "acao_atencao": "Identificar pelo User-Agent o cliente que não envia os headers.",
+        "acao_critico": "Emitir o relatório com ressalva de rastreabilidade e notificar o responsável pelo cliente, com prazo de correção.",
+        "grafico": "Cartão de KPI com meta + barras horizontais por cliente (User-Agent)"
+      },
+      {
+        "codigo": "IND-06",
+        "chave": "taxa_erro_servidor_pct",
+        "nome": "Taxa de erro do servidor (5xx)",
+        "unidade": "%",
+        "sentido": "menor_melhor",
+        "limiar_atencao": 1,
+        "limiar_critico": 5,
+        "escopo": "Todas as chamadas",
+        "acao_atencao": "Analisar os registros de erro do período e o ativo envolvido.",
+        "acao_critico": "Abrir incidente e comunicar a indisponibilidade aos usuários do painel.",
+        "grafico": "Linha temporal da taxa de 5xx em janelas de 5 min + barras empilhadas de status por rota"
+      },
+      {
+        "codigo": "IND-07",
+        "chave": "completude_historico_pct",
+        "nome": "Completude do histórico",
+        "unidade": "%",
+        "sentido": "maior_melhor",
+        "limiar_atencao": 98,
+        "limiar_critico": 95,
+        "escopo": "Históricos devolvidos com sucesso (pontos recebidos ÷ esperados)",
+        "acao_atencao": "Sinalizar as lacunas no gráfico do histórico para o analista.",
+        "acao_critico": "Não usar o período como base de tendência; reprocessar a série no historiador.",
+        "grafico": "Barras por ativo com linha de meta de 98%"
+      },
+      {
+        "codigo": "IND-08",
+        "chave": "taxa_leituras_criticas_pct",
+        "nome": "Proporção de leituras críticas devolvidas",
+        "unidade": "%",
+        "sentido": "menor_melhor",
+        "limiar_atencao": 25,
+        "limiar_critico": 40,
+        "escopo": "Leituras atuais devolvidas com sucesso",
+        "acao_atencao": "Comparar com a baseline: confirmar se é piora real dos ativos ou desvio do classificador.",
+        "acao_critico": "Encaminhar ao Engenheiro de Manutenção para validação humana antes de novas ações.",
+        "grafico": "Barras empilhadas 100% de severidade por ativo"
+      }
+    ]
+  },
+  "filtros": {
+    "janela_min": null,
+    "rota": null,
+    "feature": null,
+    "session_id": null,
+    "tag": null
+  },
+  "total_base": 5357,
+  "resumo": {
+    "total_chamadas": 5357,
+    "inicio": "2026-10-08T17:44:48.070Z",
+    "fim": "2026-10-08T18:38:33.825Z",
+    "duracao_min": 53.8,
+    "sessoes_distintas": 50,
+    "por_rota": {
+      "/v1/observabilidade": 321,
+      "/v1/sensores/{tag}/historico": 1428,
+      "/v1/sensores/{tag}/leitura-atual": 3562,
+      "/v1/sensores": 45,
+      "/": 1
+    },
+    "por_feature": {
+      "painel-observabilidade": 292,
+      "painel-historico": 1309,
+      "painel-leitura-atual": 3321,
+      "catalogo-ativos": 42,
+      "script-consumo": 7,
+      "(ausente)": 384,
+      "relatorio-governanca": 2
+    },
+    "por_status": {
+      "200": 5066,
+      "404": 224,
+      "503": 67
+    },
+    "por_cliente": {
+      "forzy-front-streamlit/1.0": 19,
+      "forzy-diagnostico/1.0": 18,
+      "forzy-script-consumo/1.0": 6,
+      "forzy-gerador-trafego/1.0 (front simulado)": 4927,
+      "cliente-legado-sem-instrumentacao/0.9": 383,
+      "forzy-analise-governanca/1.0": 2,
+      "curl/8.19.0": 2
+    },
+    "indicadores": [
+      {
+        "codigo": "IND-01",
+        "chave": "latencia_p95_leitura_ms",
+        "nome": "Latência p95 — leitura atual",
+        "unidade": "ms",
+        "valor": 72.74,
+        "amostra": 3495,
+        "status": "ok",
+        "limiar_atencao": 250,
+        "limiar_critico": 800,
+        "sentido": "menor_melhor",
+        "acao": ""
+      },
+      {
+        "codigo": "IND-02",
+        "chave": "latencia_p95_historico_ms",
+        "nome": "Latência p95 — histórico",
+        "unidade": "ms",
+        "valor": 173.82,
+        "amostra": 1428,
+        "status": "ok",
+        "limiar_atencao": 600,
+        "limiar_critico": 1500,
+        "sentido": "menor_melhor",
+        "acao": ""
+      },
+      {
+        "codigo": "IND-03",
+        "chave": "idade_dado_p95_s",
+        "nome": "Tempo de atualização (idade p95 do dado)",
+        "unidade": "s",
+        "valor": 30.85,
+        "amostra": 3271,
+        "status": "atencao",
+        "limiar_atencao": 15,
+        "limiar_critico": 60,
+        "sentido": "menor_melhor",
+        "acao": "Verificar a conectividade do gateway do ativo com maior idade."
+      },
+      {
+        "codigo": "IND-04",
+        "chave": "taxa_freshness_pct",
+        "nome": "Taxa de completude de freshness",
+        "unidade": "%",
+        "valor": 94.5,
+        "amostra": 3271,
+        "status": "atencao",
+        "limiar_atencao": 95,
+        "limiar_critico": 90,
+        "sentido": "maior_melhor",
+        "acao": "Investigar quais ativos concentram leituras vencidas."
+      },
+      {
+        "codigo": "IND-05",
+        "chave": "taxa_contexto_pct",
+        "nome": "Completude dos metadados de contexto",
+        "unidade": "%",
+        "valor": 92.83,
+        "amostra": 5357,
+        "status": "critico",
+        "limiar_atencao": 99,
+        "limiar_critico": 95,
+        "sentido": "maior_melhor",
+        "acao": "Emitir o relatório com ressalva de rastreabilidade e notificar o responsável pelo cliente, com prazo de correção."
+      },
+      {
+        "codigo": "IND-06",
+        "chave": "taxa_erro_servidor_pct",
+        "nome": "Taxa de erro do servidor (5xx)",
+        "unidade": "%",
+        "valor": 1.25,
+        "amostra": 5357,
+        "status": "atencao",
+        "limiar_atencao": 1,
+        "limiar_critico": 5,
+        "sentido": "menor_melhor",
+        "acao": "Analisar os registros de erro do período e o ativo envolvido."
+      },
+      {
+        "codigo": "IND-07",
+        "chave": "completude_historico_pct",
+        "nome": "Completude do histórico",
+        "unidade": "%",
+        "valor": 98.93,
+        "amostra": 1428,
+        "status": "ok",
+        "limiar_atencao": 98,
+        "limiar_critico": 95,
+        "sentido": "maior_melhor",
+        "acao": ""
+      },
+      {
+        "codigo": "IND-08",
+        "chave": "taxa_leituras_criticas_pct",
+        "nome": "Proporção de leituras críticas devolvidas",
+        "unidade": "%",
+        "valor": 9.42,
+        "amostra": 3271,
+        "status": "ok",
+        "limiar_atencao": 25,
+        "limiar_critico": 40,
+        "sentido": "menor_melhor",
+        "acao": ""
+      }
+    ]
+  }
+}

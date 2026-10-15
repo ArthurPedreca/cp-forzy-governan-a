@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Ambiente virtual
+.venv/
+venv/
+
+# Base de observabilidade gerada em runtime
+data/*.db
+data/*.db-journal
+
+# IDE / SO
+.vscode/
+.idea/
+.DS_Store
+
+# Mídia (gravações brutas ficam fora; o vídeo final de entrega entra)
+*.mkv
+*.mp4
+!docs/Video_Demonstracao_Forzy.mp4
+
+# Streamlit
+.streamlit/secrets.toml
