@@ -194,7 +194,3 @@ pytest
 ## Fora do escopo deste checkpoint
 
 Autenticação/autorização e a migração dos providers de Equipamentos e Plantas ficam para a Sprint 4.
-
-## Uso de IA
-
-Ferramentas de IA generativa foram usadas como apoio na estruturação do código e da documentação. Toda a solução foi revisada, executada e testada pelo grupo. A declaração detalhada está na seção 7 do documento ABNT.
